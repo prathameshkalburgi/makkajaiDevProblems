@@ -92,8 +92,9 @@ public class ConferenceScheduler {
         ConferenceScheduler conferenceScheduler = new ConferenceScheduler(allTalks);
         List<Track> tracks = conferenceScheduler.scheduleConference();
         boolean repeatCheck = true;
+        int count = 1;
         for (Track track : tracks) {
-            System.out.println("Track:");
+            System.out.println("Track "+count+" :");
             List<Session> sessions = track.getSessions();
             Collections.sort(sessions, Comparator.comparing(Session::getStartTime));
 
@@ -133,6 +134,7 @@ public class ConferenceScheduler {
             LocalTime networkingEventTime = LocalTime.of(5, 0);
             System.out.printf("%02d:%02d PM Networking Event%n%n", networkingEventTime.getHour(), networkingEventTime.getMinute());
             repeatCheck = true;
+            count++;
         }
     }
 }

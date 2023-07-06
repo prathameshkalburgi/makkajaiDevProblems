@@ -1,44 +1,67 @@
 package org.problems.gameoflife;
 
+import java.util.*;
+
+
 public class Main {
     public static void main(String[] args) {
         GameOfLife game = new GameOfLife();
 
-        // Input A - Block pattern
-        game.addCell(1, 1, true);
-        game.addCell(1, 2, true);
-        game.addCell(2, 1, true);
-        game.addCell(2, 2, true);
+        // Example: Block pattern
+        System.out.println("input 1 :");
+        game.addLiveCell(1, 1);
+        game.addLiveCell(1, 2);
+        game.addLiveCell(2, 1);
+        game.addLiveCell(2, 2);
 
-        System.out.println("Output A:");
-        game.printCells();
-        System.out.println();
+        processData(game, 1);
 
-        game.runGeneration();
-        System.out.println("Output A after one generation:");
-        game.printCells();
-        System.out.println();
+        System.out.println("--------------------------------------------------------------------------------");
 
-        game = new GameOfLife();
+        GameOfLife game2 = new GameOfLife();
+        System.out.println("input 2 :");
+        game2.addLiveCell(0, 1);
+        game2.addLiveCell(1, 0);
+        game2.addLiveCell(2, 1);
+        game2.addLiveCell(0, 2);
+        game2.addLiveCell(1, 2);
+        processData(game2, 2);
 
-        // Input B - Boat pattern
-        game.addCell(0, 1, true);
-        game.addCell(1, 0, true);
-        game.addCell(2, 1, true);
-        game.addCell(0, 2, true);
-        game.addCell(1, 2, true);
+        System.out.println("--------------------------------------------------------------------------------");
 
-        System.out.println("Output B:");
-        game.printCells();
-        System.out.println();
 
-        game.runGeneration();
-        System.out.println("Output B after one generation:");
-        game.printCells();
-        System.out.println();
+        GameOfLife game3 = new GameOfLife();
+        System.out.println("input 3 :");
+        game3.addLiveCell(1, 1);
+        game3.addLiveCell(1, 0);
+        game3.addLiveCell(1, 2);
+        processData(game3, 3);
+        System.out.println("--------------------------------------------------------------------------------");
 
-        // Repeat the same process for Input C and Input D
-        // ...
+        GameOfLife game4 = new GameOfLife();
+        System.out.println("input 4 :");
+        game4.addLiveCell(1, 1);
+        game4.addLiveCell(1, 2);
+        game4.addLiveCell(1, 3);
+        game4.addLiveCell(2, 2);
+        game4.addLiveCell(2, 3);
+        game4.addLiveCell(2, 4);
 
+
+        processData(game4, 4);
+
+    }
+
+    private static void processData(GameOfLife game, int outputnumber) {
+        game.simulateGeneration();
+
+        Set<Cell> nextGeneration = game.getLiveCells();
+        List<String> data = new ArrayList<>();
+        System.out.println("Output " + outputnumber + ":");
+        for (Cell cell : nextGeneration) {
+            data.add(cell.getX() + "," + cell.getY());
+        }
+        Collections.sort(data);
+        data.forEach(System.out::println);
     }
 }
