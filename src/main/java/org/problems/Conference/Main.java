@@ -22,13 +22,12 @@ public class Main {
 
         List<Talk> allTalks = readTalksFromFile(filePath);
         if(allTalks.isEmpty()){
-            System.out.println("File is Empty: No Talks");
-            System.exit(0);
+            throw new InvalidInputException("File is Empty: No Talks");
         }
         scheduleConference(allTalks);
     }
 
-    private static void scheduleConference(List<Talk> allTalks) {
+    public static void scheduleConference(List<Talk> allTalks) {
         ConferenceScheduler conferenceScheduler = new ConferenceScheduler(allTalks);
         List<Track> tracks = conferenceScheduler.scheduleConference();
         boolean repeatCheck = true;

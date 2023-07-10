@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ReadFile {
-    static List<Talk> readTalksFromFile(String filename) throws IOException, InvalidInputException {
+    public static List<Talk> readTalksFromFile(String filename) throws IOException, InvalidInputException {
         List<Talk> talks = new ArrayList<>();
 
         List<String> lines = Files.readAllLines(Paths.get(filename));
@@ -15,7 +15,7 @@ public class ReadFile {
             line = line.trim();
             int split = line.lastIndexOf(' ');
             if(split < 1){
-                throw new InvalidInputException("Talk must contain title and duration\n"+line);
+                throw new InvalidInputException("Talk must contain title and duration");
             }
             String title = line.substring(0, split).trim();
             String durationSpecified = line.substring(split + 1);
@@ -40,7 +40,7 @@ public class ReadFile {
         }
         try {
             if (Integer.parseInt(durationSpecified.substring(0, durationSpecified.length() - 3)) < 1 )
-                throw new InvalidInputException("The duration must be positive.");
+                throw new InvalidInputException("The duration must be positive\n"+line);
         }
         catch(NumberFormatException e){
             throw new InvalidInputException("Value of duration should be of type numbers with the format '5min'\n"+line);
