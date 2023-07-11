@@ -1,8 +1,5 @@
 package org.problems.Conference;
 
-import javax.xml.datatype.Duration;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -12,17 +9,26 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static org.problems.Conference.ReadFile.readTalksFromFile;
+import static org.problems.Conference.ValidateTalks.validateTalksFromConsole;
 
 public class Main {
     public static void main(String[] args) throws InvalidInputException, IOException {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter the file path: ");
-        String filePath = scanner.nextLine();
+        List<Talk> talks = new ArrayList<>();
+        List<String> lines = new ArrayList<>();
 
-        List<Talk> allTalks = readTalksFromFile(filePath);
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the number of talks you want to insert :");
+        int noOfTalks = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.println("Enter talks with duration with format 'Rails Magic - 60min ' :");
+        for(int i=0;i<noOfTalks;i++){
+            lines.add(scanner.nextLine());
+        }
+        List<Talk> allTalks = validateTalksFromConsole(lines,talks);
         if(allTalks.isEmpty()){
-            throw new InvalidInputException("File is Empty: No Talks");
+            throw new InvalidInputException("No Talks Entered");
         }
         scheduleConference(allTalks);
     }
@@ -35,7 +41,7 @@ public class Main {
         for (Track track : tracks) {
             System.out.println("Track " + count + ":");
             List<Session> sessions = track.getSessions();
-            Collections.sort(sessions, Comparator.comparing(Session::getStartTime));
+            sessions.sort(Comparator.comparing(Session::getStartTime));
 
             for (Session session : sessions) {
                 List<Talk> talks = session.getTalks();

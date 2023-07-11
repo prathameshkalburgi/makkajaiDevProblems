@@ -50,14 +50,6 @@ public class ConferenceScheduler {
 
         remainingTalks.removeAll(session.getTalks());
 
-        if (!session.getTalks().isEmpty()) {
-            if (remainingTime >= LUNCH_DURATION) {
-                // Add lunch break if there is enough time remaining
-                Talk lunchBreak = new Talk("Lunch", LUNCH_DURATION);
-                session.addTalk(lunchBreak);
-                remainingTime -= LUNCH_DURATION;
-            }
-        }
 
         return session;
     }

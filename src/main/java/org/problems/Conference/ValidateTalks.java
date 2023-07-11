@@ -1,16 +1,11 @@
 package org.problems.Conference;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
-public class ReadFile {
-    public static List<Talk> readTalksFromFile(String filename) throws IOException, InvalidInputException {
-        List<Talk> talks = new ArrayList<>();
+public class ValidateTalks {
+    public static List<Talk> validateTalksFromConsole(List<String> lines, List<Talk> talks) throws InvalidInputException {
 
-        List<String> lines = Files.readAllLines(Paths.get(filename));
         for(String line : lines) {
             line = line.trim();
             int split = line.lastIndexOf(' ');
