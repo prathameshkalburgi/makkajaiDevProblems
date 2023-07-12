@@ -1,109 +1,129 @@
 package conferencetest;
-
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.problems.Conference.InvalidInputException;
-import org.problems.Conference.Talk;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.problems.ConferenceProblem.ConferenceApp;
+import org.problems.ConferenceProblem.InvalidInputException;
+import org.problems.ConferenceProblem.Talk;
+import org.problems.ConferenceProblem.TalkParser;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.problems.Conference.Main.scheduleConference;
-import static org.problems.Conference.ValidateTalks.validateTalksFromConsole;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 public class ConferenceTest {
+    @Mock
+    private TalkParser talkParser;
 
-    private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    private final PrintStream originalSystemOut = System.out;
-    private final InputStream originalSystemIn = System.in;
+    private List<Talk> allTalks;
+    private ConferenceApp conferenceApp;
 
     @BeforeEach
-    public void setUp() {
-        System.setOut(new PrintStream(outputStream));
+    public void setup() {
+        MockitoAnnotations.initMocks(this);
+        allTalks = new ArrayList<>();
+        conferenceApp = new ConferenceApp(allTalks);
     }
 
-    @AfterEach
-    public void tearDown() {
-        System.setOut(originalSystemOut);
-        System.setIn(originalSystemIn);
-    }
-
-    //Happy Path
     @Test
-    public void testScheduleConference() throws InvalidInputException, IOException {
-        List<String> lines = Files.readAllLines(Path.of("src/test/resources/input.txt"));
-        List<Talk> talks = new ArrayList<>();
-        talks = validateTalksFromConsole(lines, talks);
+    public void testRun_ConferenceAppWithValidInput_ShouldScheduleConference() throws InvalidInputException {
+        // Mock user input
+        String userInput = "3\nTalk 1 - 45min\nTalk 2 - 30min\nTalk 3 - 60min";
+        InputStream inputStream = new ByteArrayInputStream(userInput.getBytes());
+        System.setIn(inputStream);
 
-        scheduleConference(talks);
-        String consoleOutput = outputStream.toString();
-        assertTrue(consoleOutput.contains("Track 1:"));
-        assertTrue(consoleOutput.contains("Track 2:"));
+        // Mock talk parsing
+        List<Talk> userTalks = new ArrayList<>();
+        userTalks.add(new Talk("Talk 1", 45));
+        userTalks.add(new Talk("Talk 2", 30));
+        userTalks.add(new Talk("Talk 3", 60));
+        when(talkParser.parseTalksFromUserInput()).thenReturn(userTalks);
+
+        // Run the ConferenceApp
+        conferenceApp.run();
+
+        // Verify the scheduled sessions
+        List<Talk> scheduledTalks = allTalks;
+        assertEquals(3, scheduledTalks.size());
+        assertEquals("Talk 1 -", scheduledTalks.get(0).getTitle());
+        assertEquals(45, scheduledTalks.get(0).getDuration());
+        assertEquals("Talk 2 -", scheduledTalks.get(1).getTitle());
+        assertEquals(30, scheduledTalks.get(1).getDuration());
+        assertEquals("Talk 3 -", scheduledTalks.get(2).getTitle());
+        assertEquals(60, scheduledTalks.get(2).getDuration());
     }
+
+    @Test
+    public void testScheduleConferenceWithOutUnitOfTime() {
+        // Mock user input
+        String userInput = "3\nTalk 1 - 45min\nTalk 2 \nTalk 3 - 60min";
+        InputStream inputStream = new ByteArrayInputStream(userInput.getBytes());
+        System.setIn(inputStream);
+
+        // Run the ConferenceApp and assert that the InvalidInputException is thrown
+//        assertThrows(InvalidInputException.class, conferenceApp::run);
+        Throwable exception = assertThrows(InvalidInputException.class, () -> {
+            conferenceApp.run();
+        });
+        String expectedMessage = "Time unit (min) not specified\nTalk 2";
+        String actualMessage = exception.getMessage();
+        assertEquals(expectedMessage, actualMessage);
+    }
+
+
 
     //Talk must contain title and duration : error
     @Test
-    public void testScheduleConferenceWithEmptyLine() {
-        String filePath = "src/test/resources/emptyLineInInputFile.txt";
+    public void testScheduleConferenceWithEmptyLine() throws IOException {
+        String userInput = "3\nTalk 1 - 45min\n \nTalk 3 - 60min";
+        InputStream inputStream = new ByteArrayInputStream(userInput.getBytes());
+        System.setIn(inputStream);
 
         Throwable exception = assertThrows(InvalidInputException.class, () -> {
-            List<String> lines = Files.readAllLines(Path.of(filePath));
-            List<Talk> talks = new ArrayList<>();
-            talks = validateTalksFromConsole(lines, talks);
+
+            conferenceApp.run();
         });
 
         assertEquals("Talk must contain title and duration", exception.getMessage());
     }
 
 
-    //Time unit(min) not specified : error
-    @Test
-    public void testScheduleConferenceWithOutUnitOfTime() {
-        String filePath = "src/test/resources/withOutUnitOfTime.txt";
-
-        Throwable exception = assertThrows(InvalidInputException.class, () ->{
-            List<String> lines = Files.readAllLines(Path.of(filePath));
-            List<Talk> talks = new ArrayList<>();
-            talks = validateTalksFromConsole(lines, talks);
-                });
-
-
-        String line ="Ruby on Rails: Why We Should Move On - 60";
-        assertEquals("Time unit(min) not specified\n"+line, exception.getMessage());
-    }
-
     //The duration must be positive : error
     @Test
     public void testScheduleConferenceWithdurationLessThemZero() {
-        String filePath = "src/test/resources/durationLessThenZero.txt";
+        String userInput = "2\nTalk 1 - 45min\n Talk 3 - -60min";
+        InputStream inputStream = new ByteArrayInputStream(userInput.getBytes());
+        System.setIn(inputStream);
 
         Throwable exception = assertThrows(InvalidInputException.class, () -> {
-            List<String> lines = Files.readAllLines(Path.of(filePath));
-            List<Talk> talks = new ArrayList<>();
-            talks = validateTalksFromConsole(lines, talks);
-                });
 
-        String line ="Ruby on Rails: Why We Should Move On - -60min";
-        assertEquals("The duration must be positive\n"+line, exception.getMessage());
+            conferenceApp.run();
+        });
+        assertEquals("The duration must be positive\nTalk 3 - -60min", exception.getMessage());
     }
 
     //Value of duration should be of type numbers with the format '5min' : error
     @Test
     public void testScheduleConferenceWithIncorrectFormatOfTalk() {
-        String filePath = "src/test/resources/incorrectFormatOfTalk.txt";
+        String userInput = "2\nTalk 1 - 45min\nTalk 3 - llmmin";
+        InputStream inputStream = new ByteArrayInputStream(userInput.getBytes());
+        System.setIn(inputStream);
 
-        Throwable exception = assertThrows(InvalidInputException.class, () ->{
-            List<String> lines = Files.readAllLines(Path.of(filePath));
-            List<Talk> talks = new ArrayList<>();
-            talks = validateTalksFromConsole(lines, talks);
-                });
+        Throwable exception = assertThrows(InvalidInputException.class, () -> {
 
-        String line ="Rails Magic - llmin";
+            conferenceApp.run();
+        });
+
+        String line ="Talk 3 - llmmin";
         assertEquals("Value of duration should be of type numbers with the format '5min'\n"+line, exception.getMessage());
     }
 }
